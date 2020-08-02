@@ -1,4 +1,4 @@
-## In this section, we will register a custom domain name with the distribution and use ACM to generate public certificate
+## Register a custom domain name with CloudFront Distribution and use ACM to generate public certificate
 
 ## Scenario steps
 - Route 53: Register a domain
