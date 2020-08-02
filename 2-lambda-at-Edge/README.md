@@ -1,4 +1,4 @@
-# For Scenario-2, we will build on top of Scenario-1, so make sure you have completed Scenario-1
+## Lambda@Edge Lab with different examples
 
 Lambda@Edge lets you run Node.js and Python Lambda functions to customize content that CloudFront delivers, executing the functions in AWS locations closer to the viewer. The functions run in response to CloudFront events, without provisioning or managing servers. You can use Lambda functions to change CloudFront requests and responses at the following points:
 
