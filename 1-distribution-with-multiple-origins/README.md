@@ -1,4 +1,4 @@
-# For Scenario-1, perform the following steps to run scenario-1 lab
+## Multi Origin CloudFront Distribution
 
 - Change directory to 1-distribution-with-origins
 
