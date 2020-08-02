@@ -1,0 +1,49 @@
+body{  
+    font-family: Arial;
+    font-size: 20px;
+    color: #000;
+    background:  #a26028;
+}
+
+iframe{
+    font-family: Arial;
+    font-size: 20px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+th {
+    padding: 15px;
+    text-align: center;
+}
+
+td {
+    padding: 15px;
+    text-align: left;
+}
+
+h1 {
+    font-size:50px;
+    text-align: center;
+    color: #F38B23;
+}
+
+h3 {
+    font-size:22px;
+    text-align: center;
+    color: #0F84F2
+}
+
+.sidebar {
+    float:left;
+    width:300px;
+    margin:0 0 0 15px;
+    font-size:15px;
+    list-style:none;
+}

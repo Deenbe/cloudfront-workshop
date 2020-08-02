@@ -1,0 +1,141 @@
+{
+	"info": {
+		"_postman_id": "7a679b34-9bbd-4c6d-8027-d78a4d260ca4",
+		"name": "CloudFront",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ABTesting",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "X-Experiment-Name=B",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://d2r9zfgjyjb6op.cloudfront.net/experiment-pixel.jpg",
+					"protocol": "https",
+					"host": [
+						"d2r9zfgjyjb6op",
+						"cloudfront",
+						"net"
+					],
+					"path": [
+						"experiment-pixel.jpg"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Adding a Header Based on a Query String Parameter",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://d2r9zfgjyjb6op.cloudfront.net/api?auth=auth-querystring-1233",
+					"protocol": "https",
+					"host": [
+						"d2r9zfgjyjb6op",
+						"cloudfront",
+						"net"
+					],
+					"path": [
+						"api"
+					],
+					"query": [
+						{
+							"key": "auth",
+							"value": "auth-querystring-1233"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Generating an HTTP Redirect",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://d3r0omstcya7ng.cloudfront.net/apireqheaders",
+					"protocol": "https",
+					"host": [
+						"d3r0omstcya7ng",
+						"cloudfront",
+						"net"
+					],
+					"path": [
+						"apireqheaders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Normalizing Query String Parameters to Improve the Cache Hit Ratio",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://d3r0omstcya7ng.cloudfront.net/apiquerystring?ScreenNAme=CloudFront&TopiCName=LambdaatEdge&SessionKey=RTSGD3fedfsdfSDGHYJH",
+					"protocol": "https",
+					"host": [
+						"d3r0omstcya7ng",
+						"cloudfront",
+						"net"
+					],
+					"path": [
+						"apiquerystring"
+					],
+					"query": [
+						{
+							"key": "ScreenNAme",
+							"value": "CloudFront"
+						},
+						{
+							"key": "TopiCName",
+							"value": "LambdaatEdge"
+						},
+						{
+							"key": "SessionKey",
+							"value": "RTSGD3fedfsdfSDGHYJH"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "WAF Bot Request",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "BadBot",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "cfworkshop.skillsreinvent.com/cloudfront.jpg",
+					"host": [
+						"cfworkshop",
+						"skillsreinvent",
+						"com"
+					],
+					"path": [
+						"cloudfront.jpg"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

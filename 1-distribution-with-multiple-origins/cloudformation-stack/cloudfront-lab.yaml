@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Nodejs webserver on EC2 & S3 bucket
+Parameters:
+  KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: The EC2 Key Pair to allow SSH access to the bastion host
+  WorkshopName:
+    Type: String
+    Description: Project Name
+Resources:
+    SecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Allow Inbound HTTP traffic
+        SecurityGroupIngress:
+          - IpProtocol: "tcp"
+            FromPort: "80"
+            ToPort: "80"
+            CidrIp: "0.0.0.0/0"
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: "0.0.0.0/0"
+    Instance:
+      Type: AWS::EC2::Instance
+      Properties:
+        ImageId: ami-0e6ffd814f85881c8
+        InstanceType: t2.micro
+        KeyName: !Ref KeyPair
+        SecurityGroups: 
+          - Ref: SecurityGroup
+    S3BucketImages:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub "images-${WorkshopName}"
+    S3BucketHtml:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub "html-${WorkshopName}"
+    S3BucketHtmlSecondary:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub "html-secondary-${WorkshopName}"
+    S3BucketCSS:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub "css-${WorkshopName}"
+
+Outputs:
+  S3BucketImages:
+    Value: !Ref 'S3BucketImages'
+    Description: S3 bucket for images
+  S3BucketHtml:
+    Value: !Ref 'S3BucketHtml'
+    Description: S3 bucket for html
+  S3BucketHtmlSecondary:
+    Value: !Ref 'S3BucketHtmlSecondary'
+    Description: secondary S3 bucket for html to Origin Group configuration
+  S3BucketCSS:
+    Value: !Ref 'S3BucketCSS'
+    Description: S3 bucket for css
+  EC2DNSName:
+    Description: The domain name of the EC2 origin
+    Value: !GetAtt Instance.PublicDnsName

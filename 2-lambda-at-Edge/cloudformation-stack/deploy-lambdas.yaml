@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Edge Lambda Function
+Parameters:
+    BucketName:
+      Type: String
+      Description: Bucket that contains Lambda zip file
+    FunctionName:
+      Type: String
+      Description: Lambda Function name
+    ZipfileName:
+      Type: String
+      Description: Zip file name that contains Lambda function code
+    LambdaRuntime:
+      Type: String
+      Description: Lambda Runtime
+    Handler:
+      Type: String
+      Description: Lambda Function handler
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - edgelambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            Resource: arn:aws:logs:*:*:*
+  Function: 
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref ZipfileName
+      FunctionName: !Ref FunctionName
+      Handler: !Sub "${Handler}"
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: !Ref LambdaRuntime
+      Timeout: 30
+  Version:
+    Type: AWS::Lambda::Version
+    Properties: 
+      FunctionName: !Ref Function
+      Description: v1

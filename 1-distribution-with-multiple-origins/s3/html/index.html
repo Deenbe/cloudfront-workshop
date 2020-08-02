@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <table border="1" width="100%">
+      <thead>
+        <tr>
+           <td>
+              <h1>CloudFront Scenario - 1</h1>
+           </td>
+        </tr>
+        <tr>
+          <td>
+             Index.html is coming from <b>HTML origin - pointing to HTML S3 bucket rest endpoint</b>
+          </td>
+       </tr>
+        <tr>
+          <td>
+             CSS for this page is coming from <b>CSS Origin - pointing to CSS S3 bucket rest endpoint</b>
+          </td>
+       </tr>
+     </thead>
+     <tfoot>
+      <tr>
+        <td>
+          <h3>
+          In this scenario, we have configured a CloudFront Distribution with 4 different Origins</td>
+          </h3>
+     </tr>
+    </tfoot>
+    <tbody>
+        <tr><td>Response sent by API - This is coming from <b>Custom Origin that is pointing to EC2</b></td></tr>
+        <tr><td> <iframe src='/apireqheaders' style="width:100%; height:100%;"></iframe></td></tr>
+        <tr>
+          <td><img src="cloudfront.jpg" alt="cloudfront image"> <br> This is coming from <b>Image Origin - pointing to Images S3 bucket rest endpoint</b></td>
+        </tr>
+    </tbody>
+    </table>
+  </body>
+</html>
