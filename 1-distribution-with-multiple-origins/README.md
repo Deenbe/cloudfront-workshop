@@ -1,5 +1,9 @@
 ## Multi Origin CloudFront Distribution
 
+### What are we trying to build?
+
+![](./images/cloudfront.png)
+
 - Change directory to 1-distribution-with-origins
 
 ```$ cd 1-distribution-with-origins```
