@@ -37,10 +37,10 @@ make_s3_lambda_buckets(){
     echo '*******************************************************************************'
     mkdir zipfiles
     cd LambdaFunction
-    zip get_image.zip GetImage.py
+    zip get_image.zip Get_Image.py
     mv get_image.zip ../zipfiles/
     aws s3 mb s3://${LAMBDA_FUNCTION_BUCKET_NAME}
-    aws s3 cp ../zipfiles/get_image.zip s3://${LAMBDA_FUNCTION_BUCKET_NAME}/get_image.zip
+    aws s3 cp ../zipfiles/Get_Image.zip s3://${LAMBDA_FUNCTION_BUCKET_NAME}/Get_Image.zip
     echo '******************** Lambda Zip file uploaded to S3 Completed ***************'
     cd ..
 }
@@ -67,7 +67,7 @@ delete_s3_buckets() {
     echo '*******************************************************************************'
     echo '******************** Deleting Lambda Zip files and Buckets ********************'
     echo '*******************************************************************************'
-    aws s3 rm s3://${LAMBDA_FUNCTION_BUCKET_NAME}/get_image.zip
+    aws s3 rm s3://${LAMBDA_FUNCTION_BUCKET_NAME}/Get_Image.zip
     aws s3 rb s3://${LAMBDA_FUNCTION_BUCKET_NAME}
     rm -rf zipfiles
     cd property-images
@@ -84,7 +84,7 @@ delete_s3_buckets() {
 action=${1:-"deploy"}
 
 if [ "$action" == "delete" ]; then
-    #delete_stack
+    delete_stack
     delete_s3_buckets
     
     exit 0
@@ -93,6 +93,6 @@ fi
 if [ "$action" == "deploy" ]; then
     make_s3_lambda_buckets
     copy_images
-    #deploy_stack
+    deploy_stack
     exit 0
 fi
