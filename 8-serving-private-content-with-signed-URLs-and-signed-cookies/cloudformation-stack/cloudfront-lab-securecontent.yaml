@@ -23,6 +23,8 @@ Resources:
           Principal:
             Service:
               - "lambda.amazonaws.com"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/SecretsManagerReadWrite
       Policies:
       - PolicyName: "LambdaServiceRolePolicy"
         PolicyDocument:
