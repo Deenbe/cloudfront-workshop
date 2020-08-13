@@ -112,3 +112,4 @@ Outputs:
     Value: !Sub "https://${FetchImageAPI}.execute-api.${AWS::Region}.amazonaws.com/${APIStageName}"
   lambdaArn:
     Value: !GetAtt "lambdaFunction.Arn"
+  # arn:aws:iam::aws:policy/SecretsManagerReadWrite

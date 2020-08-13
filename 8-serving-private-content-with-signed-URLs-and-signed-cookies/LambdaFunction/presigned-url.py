@@ -1,7 +1,7 @@
-import boto3
-import json
 import datetime
+import boto3
 import base64
+import json
 from botocore.exceptions import ClientError
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from botocore.signers import CloudFrontSigner
 
 def get_secret():
-    secret_name = "xxxxxxxxxxxxxxxxx"
+    secret_name = "xxxxxxxxxxxxxx"
     region_name = "ap-southeast-2"
 
     # Create a Secrets Manager client
@@ -19,7 +19,6 @@ def get_secret():
         service_name='secretsmanager',
         region_name=region_name
     )
-
     try:
         get_secret_value_response = client.get_secret_value(
             SecretId=secret_name
@@ -64,40 +63,14 @@ def rsa_signer(message):
     )
     return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())
 
+key_id = 'xxxxxxxxxxxxxxxxxxxxxxxx'
+url = 'http://d2949o5mkkp72v.cloudfront.net/hello.txt'
+expire_date = datetime.datetime(2017, 1, 1)
 
-def get_image(event, context):
-    image_name = event["queryStringParameters"]["image_name"]
-    bucket_name = "presigned-images-cf-lab"
-    try:
-        key_id = 'xxxxxxxxxxxxxxxxxx'
-        url = 'http://d2949o5mkkp72v.cloudfront.net/hello.txt'
-        expire_date = datetime.datetime(2017, 1, 1)
-        cloudfront_signer = CloudFrontSigner(key_id, rsa_signer)
+cloudfront_signer = CloudFrontSigner(key_id, rsa_signer)
 
-        # Create a signed url that will be valid until the specfic expiry date
-        # provided using a canned policy.
-        signed_url = cloudfront_signer.generate_presigned_url(url, date_less_than=expire_date)
-        print("****************Pre-signed URL is ****************")
-        print(signed_url)
-        print("****************Pre-signed URL end ****************")
-        print("looking for image name is {0} from bucket {1}".format(image_name,bucket_name))
-        s3 = boto3.resource('s3')
-        object = s3.Object(bucket_name,image_name).load()
-        msg = "Image with name : " + image_name + " exists"
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "message": msg,
-            }),
-            "headers":{ 'Access-Control-Allow-Origin' : '*' }
-        }
-    except BaseException as error:
-        print("*** Failure to retrieve Car Image - Please check your request ***")
-        return {
-            "statusCode": 404,
-            "body": json.dumps({
-                "message": str(error),
-            }),
-            "headers":{ 'Access-Control-Allow-Origin' : '*' }
-        }
-        
+# Create a signed url that will be valid until the specfic expiry date
+# provided using a canned policy.
+signed_url = cloudfront_signer.generate_presigned_url(
+    url, date_less_than=expire_date)
+print(signed_url)

@@ -21,24 +21,6 @@ fi
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 
-
-make_s3_lambda_buckets(){
-    echo '*******************************************************************************'
-    echo '********************** Uploading Lambda Zip file to S3 ***********************'
-    echo '*******************************************************************************'
-    mkdir zipfiles
-    mkdir deployment_package
-    cp LambdaFunction/Get_Image.py zipfiles/
-    cd zipfiles
-    pip3 install cryptography -t .
-    chmod -R 755 .
-    zip -r ../deployment_package/Get_Image.zip *
-    cd ..
-    rm -rf zipfiles
-    aws s3 mb s3://${LAMBDA_FUNCTION_BUCKET_NAME}
-    aws s3 cp deployment_package/Get_Image.zip s3://${LAMBDA_FUNCTION_BUCKET_NAME}/Get_Image.zip
-    echo '******************** Lambda Zip file uploaded to S3 Completed ***************'
-}
 copy_images(){
     aws s3 mb s3://${IMAGES_BUCKET_NAME}
     cd property-images
@@ -47,6 +29,19 @@ copy_images(){
         echo "copying file ...... ${filename}"
         aws s3 cp ${filename} s3://${IMAGES_BUCKET_NAME}/${filename}
     done
+    cd ..
+}
+make_s3_lambda_buckets(){
+    echo '*******************************************************************************'
+    echo '********************** Uploading Lambda Zip file to S3 ***********************'
+    echo '*******************************************************************************'
+    mkdir zipfiles
+    cd LambdaFunction
+    zip get_image.zip Get_Image.py
+    mv get_image.zip ../zipfiles/
+    aws s3 mb s3://${LAMBDA_FUNCTION_BUCKET_NAME}
+    aws s3 cp ../zipfiles/Get_Image.zip s3://${LAMBDA_FUNCTION_BUCKET_NAME}/Get_Image.zip
+    echo '******************** Lambda Zip file uploaded to S3 Completed ***************'
     cd ..
 }
 deploy_stack() {
@@ -74,10 +69,9 @@ delete_s3_buckets() {
     echo '*******************************************************************************'
     aws s3 rm s3://${LAMBDA_FUNCTION_BUCKET_NAME}/Get_Image.zip
     aws s3 rb s3://${LAMBDA_FUNCTION_BUCKET_NAME}
-    rm -rf deployment_package
+    rm -rf zipfiles
     cd property-images
     for path in ./*; do
-        echo $path
         filename=`echo ${path##*/}`
         echo "removing file ...... ${filename}"
         aws s3 rm s3://${IMAGES_BUCKET_NAME}/${filename}
