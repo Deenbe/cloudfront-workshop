@@ -84,7 +84,7 @@ Resources:
       Handler: Get_Image.get_image
       MemorySize: 128
       Role: !GetAtt "LambdaServiceRole.Arn"
-      Runtime: python3.8
+      Runtime: python3.7
       Timeout: 10
   lambdaLogGroup:
     Type: "AWS::Logs::LogGroup"

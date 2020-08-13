@@ -21,17 +21,6 @@ fi
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 
-test_function()
-{
-    mkdir deployment_package    
-    python3 -m venv v-env
-    source v-env/bin/activate
-    pip install cryptography
-    deactivate
-    cd v-env/lib/python3.8/site-packages
-    cp ../../../../LambdaFunction/Get_Image.py . 
-    zip -r9 Get_Image.zip .
-}
 make_s3_lambda_buckets(){
     echo '*******************************************************************************'
     echo '********************** Uploading Lambda Zip file to S3 ***********************'
@@ -42,7 +31,8 @@ make_s3_lambda_buckets(){
     source v-env/bin/activate
     pip3 install cryptography
     deactivate
-    cd v-env/lib/python3.8/site-packages
+    cd v-env/lib/python3.7/site-packages
+    mv _cffi_backend.cpython-37m-x86_64-linux-gnu.so _cffi_backend.so
     cp ../../../../LambdaFunction/Get_Image.py . 
     zip -r9 Get_Image.zip .
     cp Get_Image.zip ../../../../deployment_package/

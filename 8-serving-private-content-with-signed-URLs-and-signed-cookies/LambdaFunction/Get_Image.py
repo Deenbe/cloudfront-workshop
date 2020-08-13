@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from botocore.signers import CloudFrontSigner
 
 def get_secret():
-    secret_name = "xxxxxxxxxxxxxx"
+    secret_name = "xxxxxxxxxxxxxxxxxx"
     region_name = "ap-southeast-2"
 
     # Create a Secrets Manager client
@@ -69,7 +69,7 @@ def get_image(event, context):
     image_name = event["queryStringParameters"]["image_name"]
     bucket_name = "presigned-images-cf-lab"
     try:
-        key_id = 'xxxxxxxxxxxxxxxxxx'
+        key_id = 'xxxxxxxxxxxxxxxxxxx'
         url = 'http://d2949o5mkkp72v.cloudfront.net/hello.txt'
         expire_date = datetime.datetime(2017, 1, 1)
         cloudfront_signer = CloudFrontSigner(key_id, rsa_signer)
