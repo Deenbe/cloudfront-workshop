@@ -21,20 +21,33 @@ fi
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 
-
+test_function()
+{
+    mkdir deployment_package    
+    python3 -m venv v-env
+    source v-env/bin/activate
+    pip install cryptography
+    deactivate
+    cd v-env/lib/python3.8/site-packages
+    cp ../../../../LambdaFunction/Get_Image.py . 
+    zip -r9 Get_Image.zip .
+}
 make_s3_lambda_buckets(){
     echo '*******************************************************************************'
     echo '********************** Uploading Lambda Zip file to S3 ***********************'
     echo '*******************************************************************************'
-    mkdir zipfiles
     mkdir deployment_package
-    cp LambdaFunction/Get_Image.py zipfiles/
-    cd zipfiles
-    pip3 install cryptography -t .
-    chmod -R 755 .
-    zip -r ../deployment_package/Get_Image.zip *
-    cd ..
-    rm -rf zipfiles
+    python3 -m venv v-env
+    python3 -m venv v-env
+    source v-env/bin/activate
+    pip3 install cryptography
+    deactivate
+    cd v-env/lib/python3.8/site-packages
+    cp ../../../../LambdaFunction/Get_Image.py . 
+    zip -r9 Get_Image.zip .
+    cp Get_Image.zip ../../../../deployment_package/
+    cd ../../../..
+    rm -rf v-env
     aws s3 mb s3://${LAMBDA_FUNCTION_BUCKET_NAME}
     aws s3 cp deployment_package/Get_Image.zip s3://${LAMBDA_FUNCTION_BUCKET_NAME}/Get_Image.zip
     echo '******************** Lambda Zip file uploaded to S3 Completed ***************'

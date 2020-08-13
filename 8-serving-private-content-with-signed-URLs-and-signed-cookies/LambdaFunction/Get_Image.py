@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from botocore.signers import CloudFrontSigner
 
 def get_secret():
-    secret_name = "xxxxxxxxxxxxxxxxx"
+    secret_name = "xxxxxxxxxxxxxx"
     region_name = "ap-southeast-2"
 
     # Create a Secrets Manager client
