@@ -64,16 +64,40 @@ def rsa_signer(message):
     )
     return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())
 
+def getCloudFrontDistributionName():
+    client = boto3.client('ssm')
+    cf_distrubution = client.get_parameter(
+        Name='cf-distribution-name',
+        WithDecryption=False
+    )
+    print(cf_distrubution)
+    return cf_distrubution['Parameter']['Value']
+
+def getImagesBucketName():
+    client = boto3.client('ssm')
+    images_bucket = client.get_parameter(
+        Name='images-bucket',
+        WithDecryption=False
+    )
+    print(images_bucket)
+    return images_bucket['Parameter']['Value']
+    
 
 def get_image(event, context):
     event_string = json.dumps(event)
     print(event_string)
     image_name = event["queryStringParameters"]["image_name"]
-    bucket_name = "presigned-images-cf-lab"
+    bucket_name = getImagesBucketName()
+    print("Bucket name is {0}".format(bucket_name))
+    
     try:
         key_id = 'xxxxxxxxxxxxxxxxxxx'
-        url = 'http://d2949o5mkkp72v.cloudfront.net/hello.txt'
-        expire_date = datetime.datetime(2017, 1, 1)
+        cf_distribution_name = getCloudFrontDistributionName()
+        print("Cloudfront distribution name is {0}".format(cf_distribution_name))
+        print("**************************************")
+        print(cf_distribution_name)
+        url = "https://" + cf_distribution_name + "/" + image_name
+        expire_date = datetime.datetime(2020, 10, 10)
         cloudfront_signer = CloudFrontSigner(key_id, rsa_signer)
 
         # Create a signed url that will be valid until the specfic expiry date
@@ -89,7 +113,7 @@ def get_image(event, context):
         return {
             "statusCode": 200,
             "body": json.dumps({
-                "message": msg,
+                "message": signed_url,
             }),
             "headers":{ 'Access-Control-Allow-Origin' : '*' }
         }

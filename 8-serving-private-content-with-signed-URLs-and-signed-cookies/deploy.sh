@@ -43,7 +43,7 @@ make_s3_lambda_buckets(){
     echo '******************** Lambda Zip file uploaded to S3 Completed ***************'
 }
 copy_images(){
-    aws s3 mb s3://${IMAGES_BUCKET_NAME}
+    #aws s3 mb s3://${IMAGES_BUCKET_NAME}
     cd property-images
     for path in ./*; do
         filename=`echo ${path##*/}`
@@ -62,7 +62,7 @@ deploy_stack() {
     --stack-name "cloudfront-presigned-content-lab-stack" \
     --template-file "${DIR}/cloudformation-stack/cloudfront-distribution.yaml" \
     --capabilities CAPABILITY_IAM \
-    --parameter-overrides "BucketName=${LAMBDA_FUNCTION_BUCKET_NAME}"
+    --parameter-overrides "ImageBucket=${IMAGES_BUCKET_NAME}"
 }
 delete_stack() {
     echo "Deleting Cloud Formation stack"
@@ -101,7 +101,7 @@ fi
 
 if [ "$action" == "deploy" ]; then
     make_s3_lambda_buckets
-    copy_images
     deploy_stack
+    copy_images
     exit 0
 fi

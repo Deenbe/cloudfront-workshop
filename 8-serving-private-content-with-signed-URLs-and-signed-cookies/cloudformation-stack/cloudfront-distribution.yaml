@@ -9,7 +9,14 @@ Parameters:
     Type: "String"
     AllowedPattern: "^[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+$"
     Default: "GetImage"
+  ImageBucket:
+    Type: "String"
+    Description: "Bucket That contains the images"
 Resources:
+  S3BucketImages:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref ImageBucket  
   LambdaServiceRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -24,6 +31,7 @@ Resources:
               - "lambda.amazonaws.com"
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+      - arn:aws:iam::aws:policy/AmazonSSMFullAccess
       Policies:
       - PolicyName: "LambdaServiceRolePolicy"
         PolicyDocument:
@@ -157,6 +165,14 @@ Resources:
       Name: 'cf-distribution-name'
       Type: String
       Value: !GetAtt "CloudFront.DomainName"
+  ImageBucketNameParameter:
+    Type: AWS::SSM::Parameter
+    DependsOn: S3BucketImages
+    Properties: 
+      Description: 'CloudFront Distribution Name'
+      Name: 'images-bucket'
+      Type: String
+      Value: !Ref S3BucketImages
 Outputs:
   apiGatewayInvokeURL:
     Value: !Sub "https://${FetchImageAPI}.execute-api.${AWS::Region}.amazonaws.com/${APIStageName}"
