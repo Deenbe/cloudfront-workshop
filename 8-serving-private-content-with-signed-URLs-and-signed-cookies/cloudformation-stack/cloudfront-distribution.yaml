@@ -113,7 +113,7 @@ Resources:
           - '/*/GET/images'
   CloudFront:  
     Type: AWS::CloudFront::Distribution
-    DependsOn: 
+    DependsOn: FetchImageAPI
     Properties:
       DistributionConfig:
         Enabled: true
