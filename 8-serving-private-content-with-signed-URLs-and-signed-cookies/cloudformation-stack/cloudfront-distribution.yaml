@@ -1,0 +1,70 @@
+CloudFront:  
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        IPV6Enabled: true
+        HttpVersion: http2
+        Comment: !Join [ '--', [!Ref 'AWS::StackName', ' Cloud Front']]
+        Aliases: [!Ref CloudFrontCname]
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.1_2016
+        Origins:
+        - Id: APIGOrigin
+          DomainName: !Sub
+            - ${apigId}.execute-api.${AWS::Region}.amazonaws.com
+            - { apigId: !Ref ApiGatewayLambdaProxy }
+          OriginPath: !Sub
+            - /${Stage}
+            - { Stage: !Select [ "0", !Split [ '--', !Ref 'AWS::StackName' ] ] }
+          CustomOriginConfig:
+            # HTTPPort: 80
+            HTTPSPort: 443
+            OriginProtocolPolicy: https-only
+          OriginCustomHeaders:
+            - HeaderName: 'Verify-From-Cf'
+              HeaderValue: !Ref VerifyFromCfHeaderVal
+        DefaultCacheBehavior:
+          AllowedMethods: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+          CachedMethods: ["GET", "HEAD", "OPTIONS"]
+          ForwardedValues:
+            Headers:
+            - Access-Control-Request-Headers
+            - Access-Control-Request-Method
+            - Origin
+            - Authorization
+            # - Host APIG needs to use SNI
+            QueryString: true
+          TargetOriginId: APIGOrigin
+          ViewerProtocolPolicy: https-only
+          Compress: true
+          DefaultTTL: 0
+        CustomErrorResponses:
+        - ErrorCachingMinTTL: 0
+          ErrorCode: 400
+        - ErrorCachingMinTTL: 1
+          ErrorCode: 403
+        - ErrorCachingMinTTL: 5
+          ErrorCode: 500
+  DNSARecord:    
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Comment: !Ref 'AWS::StackName'
+      Name: !Ref CloudFrontCname
+      Type: A
+      HostedZoneName: !Join ['.', [ !Select [1, !Split ['.', !Ref CloudFrontCname]], !Select [2, !Split ['.', !Ref CloudFrontCname]], '']]
+      AliasTarget:
+        HostedZoneId: !Ref Route53HostedZoneId
+        DNSName: !GetAtt CloudFront.DomainName
+  DNSAAAARecord:    
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Comment: !Ref 'AWS::StackName'
+      Name: !Ref CloudFrontCname
+      Type: AAAA
+      HostedZoneName: !Join ['.', [ !Select [1, !Split ['.', !Ref CloudFrontCname]], !Select [2, !Split ['.', !Ref CloudFrontCname]], '']]
+      AliasTarget:
+        HostedZoneId: !Ref Route53HostedZoneId
+        DNSName: !GetAtt CloudFront.DomainName
