@@ -58,3 +58,9 @@ https://aws.amazon.com/premiumsupport/knowledge-center/build-python-lambda-deplo
 https://www.freecodecamp.org/news/escaping-lambda-function-hell-using-docker-40b187ec1e48/
 
 https://www.thetopsites.net/article/53583089.shtml
+
+
+https://aws.amazon.com/premiumsupport/knowledge-center/api-gateway-cloudfront-distribution/
+
+https://stackoverflow.com/questions/56181978/restrict-direct-api-gateway-calls-unless-its-from-cloudfront
+

@@ -47,6 +47,9 @@ Resources:
     Properties:
       Name: "cloudfrontlabapi"
       Description: "API that fetches images from S3"
+      EndpointConfiguration:
+        Types:
+        - REGIONAL
   ImageResource:  
     Type: 'AWS::ApiGateway::Resource'
     Properties:
