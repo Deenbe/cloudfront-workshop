@@ -60,7 +60,7 @@ deploy_stack() {
     aws cloudformation deploy \
     --no-fail-on-empty-changeset \
     --stack-name "cloudfront-presigned-content-lab-stack" \
-    --template-file "${DIR}/cloudformation-stack/cloudfront-lab-securecontent.yaml" \
+    --template-file "${DIR}/cloudformation-stack/cloudfront-distribution.yaml" \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides "BucketName=${LAMBDA_FUNCTION_BUCKET_NAME}"
 }
