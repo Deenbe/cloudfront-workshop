@@ -66,6 +66,8 @@ def rsa_signer(message):
 
 
 def get_image(event, context):
+    event_string = json.dumps(event)
+    print(event_string)
     image_name = event["queryStringParameters"]["image_name"]
     bucket_name = "presigned-images-cf-lab"
     try:
