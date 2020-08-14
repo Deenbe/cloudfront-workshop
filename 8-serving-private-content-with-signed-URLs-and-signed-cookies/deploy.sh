@@ -85,7 +85,7 @@ delete_s3_buckets() {
         echo "removing file ...... ${filename}"
         aws s3 rm s3://${IMAGES_BUCKET_NAME}/${filename}
     done
-    aws s3 rb s3://${IMAGES_BUCKET_NAME}
+    #aws s3 rb s3://${IMAGES_BUCKET_NAME}
     cd ..
     echo '******************** Lambda Zip files and S3 buckets Deleted *****************'
 }
@@ -93,9 +93,8 @@ delete_s3_buckets() {
 action=${1:-"deploy"}
 
 if [ "$action" == "delete" ]; then
-    delete_stack
     delete_s3_buckets
-    
+    delete_stack
     exit 0
 fi
 
