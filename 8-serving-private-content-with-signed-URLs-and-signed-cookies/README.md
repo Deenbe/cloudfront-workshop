@@ -1,10 +1,15 @@
 ## Private Content With Signed URL
 
 ### Introduction
+This is what we will build here
 
-### Learning Objectives
+![](./images/cloudfront-presigned-url.png)
+
 
 ### Prerequisites
+- You need to have a root access to AWS account to create CloudFront key to generate pre-signed url.
+- Generate a CloudFront key, download the private key and store it in AWS Secret manager.
+- Take note of CloudFront key id and secret name that you use to store CloudFront private key in the secret manager.
 - Create an EC2 instance, select Amazon Linux 2
 - Assign it an admin role as we will deploy this from EC2 due to a constraint with cryptography library that we are using to generate pre-signed url
 - Login into EC2 instance and install git
@@ -62,36 +67,10 @@ $ ./deploy.sh deploy
 
 ![](./images/access-premium-images-valid-user-presigned-url.png)
 
-- Copy presigned URL and access the 
+- Copy presigned URL and open another tab in Postman or your browser and paste the presigned url
+
+![](./images/access-premium-images-success.png)
 
 
+#### Isn't it cool?
 
-distribution-identity-secret=cloudfront-workshop-17aug
-
-
-
-https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html
-
-
-https://docs.aws.amazon.com/lambda/latest/dg/python-package.html
-
-https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudfront.html#generate-a-signed-url-for-amazon-cloudfront
-
-https://cryptography.io/en/latest/
-
-https://aws.amazon.com/premiumsupport/knowledge-center/build-python-lambda-deployment-package/
-
-
-
-https://www.freecodecamp.org/news/escaping-lambda-function-hell-using-docker-40b187ec1e48/
-
-https://www.thetopsites.net/article/53583089.shtml
-
-
-https://aws.amazon.com/premiumsupport/knowledge-center/api-gateway-cloudfront-distribution/
-
-https://stackoverflow.com/questions/56181978/restrict-direct-api-gateway-calls-unless-its-from-cloudfront
-
-
-
-https://stackoverflow.com/questions/32825413/how-do-you-add-cloudfront-in-front-of-api-gateway
