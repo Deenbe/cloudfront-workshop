@@ -72,22 +72,31 @@ delete_stack() {
     echo 'Done'
 }
 delete_s3_buckets() {
-    echo '*******************************************************************************'
-    echo '******************** Deleting Lambda Zip files and Buckets ********************'
-    echo '*******************************************************************************'
-    aws s3 rm s3://${LAMBDA_FUNCTION_BUCKET_NAME}/Get_Image.zip
-    aws s3 rb s3://${LAMBDA_FUNCTION_BUCKET_NAME}
-    rm -rf deployment_package
-    cd property-images
-    for path in ./*; do
-        echo $path
-        filename=`echo ${path##*/}`
-        echo "removing file ...... ${filename}"
-        aws s3 rm s3://${IMAGES_BUCKET_NAME}/${filename}
-    done
-    #aws s3 rb s3://${IMAGES_BUCKET_NAME}
-    cd ..
-    echo '******************** Lambda Zip files and S3 buckets Deleted *****************'
+    
+    if ! aws s3api head-bucket --bucket $LAMBDA_FUNCTION_BUCKET_NAME 2>&1 | grep -q 'Not Found'; then
+        echo '*******************************************************************************'
+        echo '******************** Deleting Lambda Zip file and bucket ********************'
+        echo '*******************************************************************************'
+
+        aws s3 rm s3://${LAMBDA_FUNCTION_BUCKET_NAME}/Get_Image.zip
+        aws s3 rb s3://${LAMBDA_FUNCTION_BUCKET_NAME}
+        rm -rf deployment_package
+    fi
+
+    if ! aws s3api head-bucket --bucket $IMAGES_BUCKET_NAME 2>&1 | grep -q 'Not Found'; then
+        echo '*******************************************************************************'
+        echo '******************** Deleting JPEG files from S3 bucket ********************'
+        echo '*******************************************************************************'
+
+        cd property-images
+        for path in ./*; do
+           echo $path
+           filename=`echo ${path##*/}`
+           echo "removing file ...... ${filename}"
+           aws s3 rm s3://${IMAGES_BUCKET_NAME}/${filename}
+        done
+        cd ..
+    fi
 }
 
 action=${1:-"deploy"}

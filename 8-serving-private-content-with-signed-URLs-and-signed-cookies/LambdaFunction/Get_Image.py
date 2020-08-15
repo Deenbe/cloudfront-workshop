@@ -87,6 +87,16 @@ def get_image(event, context):
     event_string = json.dumps(event)
     print(event_string)
     image_name = event["queryStringParameters"]["image_name"]
+    user_name = event["queryStringParameters"]["user_id"]
+    if user_name != 'king-kong':
+        return {
+            "statusCode": 404,
+            "body": json.dumps({
+                "message": "You are trying to access premium property images, you need to subscribe for premium membership.",
+            }),
+            "headers":{ 'Access-Control-Allow-Origin' : '*' }
+        }
+
     bucket_name = getImagesBucketName()
     print("Bucket name is {0}".format(bucket_name))
     

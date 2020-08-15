@@ -119,18 +119,34 @@ Resources:
           - ':'
           - !Ref FetchImageAPI
           - '/*/GET/images'
+  #Cloudfrontoriginaccessidentity:
+  CloudFrontOriginAccessIdentity:  
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "new OAI"
   CloudFront:  
     Type: AWS::CloudFront::Distribution
     DependsOn: FetchImageAPI
     Properties:
       DistributionConfig:
         Enabled: true
-        IPV6Enabled: false
+        #IPV6Enabled: false
         HttpVersion: http2
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
           MinimumProtocolVersion: TLSv1.2_2018
         Origins:
+        - Id: S3Origin
+          DomainName: !Sub
+          - ${mybucket}.s3.amazonaws.com
+          - { mybucket: !Ref ImageBucket}
+          S3OriginConfig:
+            OriginAccessIdentity: 
+              Fn::Join:
+                - ""
+                - - 'origin-access-identity/cloudfront/'
+                  - !Ref CloudFrontOriginAccessIdentity
         - Id: APIGOrigin
           DomainName: !Sub
             - ${apigId}.execute-api.${AWS::Region}.amazonaws.com
@@ -157,6 +173,19 @@ Resources:
           ViewerProtocolPolicy: https-only
           Compress: true
           DefaultTTL: 0
+        CacheBehaviors:
+          - AllowedMethods:
+            - GET
+            - HEAD
+            TargetOriginId: S3Origin
+            ForwardedValues:
+              QueryString: 'true'
+              Cookies:
+                Forward: none
+            TrustedSigners: 
+            - !Sub ${AWS::AccountId}
+            ViewerProtocolPolicy: https-only
+            PathPattern: "*.jpeg"
   DistributionNameParameter:
     Type: AWS::SSM::Parameter
     DependsOn: CloudFront
@@ -173,6 +202,19 @@ Resources:
       Name: 'images-bucket'
       Type: String
       Value: !Ref S3BucketImages
+  S3BucketImagesPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref S3BucketImages
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              CanonicalUser:
+                Fn::GetAtt: [ CloudFrontOriginAccessIdentity , S3CanonicalUserId ]
+            Action: "s3:GetObject"
+            Resource: !Sub "${S3BucketImages.Arn}/*"
 Outputs:
   apiGatewayInvokeURL:
     Value: !Sub "https://${FetchImageAPI}.execute-api.${AWS::Region}.amazonaws.com/${APIStageName}"
