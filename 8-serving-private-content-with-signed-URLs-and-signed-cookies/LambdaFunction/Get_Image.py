@@ -87,7 +87,7 @@ def get_image(event, context):
     event_string = json.dumps(event)
     print(event_string)
     image_name = event["queryStringParameters"]["image_name"]
-    user_name = event["queryStringParameters"]["user_id"]
+    user_name = event["queryStringParameters"]["user_name"]
     if user_name != 'king-kong':
         return {
             "statusCode": 404,
@@ -96,7 +96,6 @@ def get_image(event, context):
             }),
             "headers":{ 'Access-Control-Allow-Origin' : '*' }
         }
-
     bucket_name = getImagesBucketName()
     print("Bucket name is {0}".format(bucket_name))
     

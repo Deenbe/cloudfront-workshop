@@ -37,39 +37,32 @@ $ source vars.env
 $ ./deploy.sh deploy
 ````
 
+- Once deployed, open the Postman test harness and run "Access Premium Property Images" request as shown in the image below
 
-Cloufront
+- Note: there are two request params that we are passing
+  - image_name=property-1.jpeg
+  - user_name=vik
 
-- In the CloudFront console, choose Create Distribution.
+![](./images/access-premium-images.png)
 
-- On the Select a delivery method for your content page, under Web, choose Get Started.
+- You should see **You are trying to access premium property images, you need to subscribe for premium membership** message as shown in the image below.
 
-- On the Create Distribution page, for Origin Domain Name, paste your API's invoke URL, but remove the stage name. For example: https://qm85x0naai.execute-api.ap-southeast-2.amazonaws.com
+![](./images/access-premium-images-access-denied.png)
 
-- For Origin Path, enter your API's stage name with a slash in front of it (/stageName). Or, if you want to enter the stage name yourself when invoking the URL, don't enter an Origin Path.
-  - enter /demo
-- For Minimum Origin SSL Protocol, it's a best practice to choose TLSv1.2 only. 
+- Now we will resend the request with a user name who has (let's assume) got the premium membership
+- change the user name to **king-kong** (pls don't ask me why this name :-) )
+  - image_name=property-1.jpeg
+  - user_name=king-kong
 
-- For Origin Protocol Policy, choose HTTPS Only. API Gateway doesn't support unencrypted (HTTP) endpoints.
+- As shwon below in the image
 
-- Allowed HTTP Methods: GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE
+![](./images/access-premium-images-valid-user.png)
 
-- Cache Policy: Managed-CachingDisabled
+- you should see a response returing **Pre-Signed URL** as you accessed the image with a paid user name, as shown below
 
-- Origin Request Policy: Click Create a new policy
-  - Name: Cloudfront-Workshop-Origin-Policy
-  - Headers: Choose the following
-    - Access-Control-Request-Headers
-    - Access-Control-Request-Method
-    - Origin
-  - Cookies: All
-  - QueryString: All
-- Leave all the setting as is and "Create Distribution"
-- Once Distribution is "Deployed"
-- Open Postman and test
-- Createa GET request and for url add the following
-  - CLOUD_DISTRIBUTION_DOMAIN_NAME/images?image_name=property-1.jpeg
-- 
+![](./images/access-premium-images-valid-user-presigned-url.png)
+
+- Copy presigned URL and access the 
 
 
 
