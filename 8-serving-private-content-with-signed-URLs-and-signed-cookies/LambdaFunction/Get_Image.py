@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from botocore.signers import CloudFrontSigner
 
-def 
+
 def get_secret():
     # make sure you have a CloudFront Private Key stored in Secrets Manager with with name "cloudfrontkey"
     secret_name = "cloudfrontkey"
