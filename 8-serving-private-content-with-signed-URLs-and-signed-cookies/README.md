@@ -95,7 +95,7 @@ _**However, there is an issue with this implementation**_
 
 ### Let's secure the APIOrigin api
 
-- Undeploy the stack, you should be in 8-serving-private-content-with-signed-URLs-and-signed-cookies directory
+- Undeploy the stack, you should be in **8-serving-private-content-with-signed-URLs-and-signed-cookies** directory
 
 ```
 $ ./deploy.sh delete
@@ -112,8 +112,15 @@ $ ./deploy-custom-authorizer.sh deploy
 
 ![](./images/cloudfront-presigned-url-unauthorized.png)
 
-
 #### This is cool, isn't it...:-)
+
+
+### Clean up
+
+- Undeploy the stack, you should be in **8-serving-private-content-with-signed-URLs-and-signed-cookies** directory
+```
+$ ./deploy-custom-authorizer.sh delete
+```
 
 
 
