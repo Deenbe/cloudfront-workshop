@@ -5,14 +5,6 @@
 ### Learning Objectives
 
 ### Prerequisites
-- Create an EC2 instance, select Amazon Linux 2
-- Assign it an admin role as we will deploy this from EC2 due to a constraint with cryptography library that we are using to generate pre-signed url
-- Login into EC2 instance and install git
-```
-$ sudo yum install git
-```
-- Install Python 3.7
-```
 - Clone this repository
 ```
 $ git clone https://github.com/vikasbajaj/cloudfront-workshop.git
