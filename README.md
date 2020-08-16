@@ -1,9 +1,5 @@
 ## AWS CloudFront workshop
 
-### Introduction
-
-### Learning Objectives
-
 ### Prerequisites
 - Clone this repository
 ```
