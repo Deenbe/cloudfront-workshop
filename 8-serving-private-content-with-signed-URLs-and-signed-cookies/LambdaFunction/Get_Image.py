@@ -59,7 +59,7 @@ def getImagesBucketName():
     )
     return images_bucket['Parameter']['Value']
     
-getCloudFrontAccessKeyId():
+def getCloudFrontAccessKeyId():
     client = boto3.client('ssm')
     cloudfrontAccessKeyId = client.get_parameter(
         Name='CloudFrontAccessKeyID',
