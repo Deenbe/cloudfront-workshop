@@ -76,3 +76,40 @@ $ ./deploy.sh deploy
 
 #### Isn't it cool?
 
+_**However, there is an issue with this implementation**_
+
+#### Your API is still accessible directly and if API url is known, anyone can access the your APIOrigin api directly bypassing your CloudFront Distribution.
+
+- Let's check
+
+- Try to access the APIOrigin api directly
+- Go to API Gateway, select Stages in the left menu, click on **demo**
+- copy url
+- Open a new tab in Postman and access the following url
+
+```
+<Demo Stage API Url>/images?image_name=property-1.jpeg&user_name=king-kong
+```
+- You will see that you get the Presigned URL for the image that you are trying to access.
+- Same result as you received from your CloudFront Distribution.
+
+### Let's secure the APIOrigin api
+
+- Undeploy the stack, you should be in 8-serving-private-content-with-signed-URLs-and-signed-cookies directory
+
+```
+$ ./deploy.sh delete
+```
+- Deploy another stack
+
+```
+$ ./deploy-custom-authorizer.sh deploy
+```
+
+- Now try access APIOrigin api directly
+- You won't be able to access the underlying directly.
+
+#### This is cool, isn't it...:-)
+
+
+
