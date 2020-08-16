@@ -148,7 +148,8 @@ Resources:
   ImageResourceHTTPMethod:
     Type: "AWS::ApiGateway::Method"
     Properties:
-      AuthorizationType: "NONE"
+      AuthorizationType: "CUSTOM"
+      AuthorizerId: !Ref FetchImageAPIAuthorizer
       HttpMethod: "GET"
       Integration:
         IntegrationHttpMethod: "POST"
