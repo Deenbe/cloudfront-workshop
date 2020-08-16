@@ -51,7 +51,7 @@ Lambda@Edge lets you run Node.js and Python Lambda functions to customize conten
 
 this will deploy all the lambda functions from directory **LambdaFunctions** in AWS **us-east-1** region because to use **Lambda@Edge** your Lambda function must be deployed in AWS **us-east-1** region.
 
-## We will **Postman** to send HTTP requests to test Lambda@Edge
+## We will use **Postman** to send HTTP requests to test Lambda@Edge
 - Have Postman configured on your laptop
 - Open Postman, click "Collections" and click "Import", click Upload Files and select **CloudFront.postman_collection.json**  from **2-lambda-at-Edge/postman-lambda@edge-testharness**
 
