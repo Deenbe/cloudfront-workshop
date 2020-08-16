@@ -1,0 +1,295 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFront Workshop Field Level encryption"
+Parameters:
+  APIStageName:
+    Type: "String"
+    AllowedPattern: "^[a-z0-9]+$"
+    Default: "demo"
+  GetImageLambdaFunctionName:  
+    Type: "String"
+    AllowedPattern: "^[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+$"
+    Default: "StoreData"
+  GetImageAuthorizerLambdaFunctionName:  
+    Type: "String"
+    AllowedPattern: "^[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+$"
+    Default: "GetImageAPIAuthorizer"  
+  #ImageBucket:
+  #  Type: "String"
+  #  Description: "Bucket That contains the images"
+Resources:
+  ContactsDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "Email"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "Email"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+  #S3BucketImages:
+  #  Type: AWS::S3::Bucket
+  #  Properties:
+  #    BucketName: !Ref ImageBucket  
+  LambdaServiceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Action:
+            - "sts:AssumeRole"
+          Effect: "Allow"
+          Principal:
+            Service:
+              - "lambda.amazonaws.com"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+      - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+      - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+      Policies:
+      - PolicyName: "LambdaServiceRolePolicy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Action:
+                - "logs:CreateLogGroup"
+                - "logs:CreateLogStream"
+                - "logs:PutLogEvents"
+              Effect: "Allow"
+              Resource:
+              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${GetImageLambdaFunctionName}:*"
+              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${GetImageAuthorizerLambdaFunctionName}:*"
+            - Action:
+              - s3:Get*
+              - s3:List*
+              Effect: Allow
+              Resource: arn:aws:s3:::*
+
+  GetImageAuthorizerLambdaFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: cloudfront-workshop-field-level-encryption-ex
+        S3Key: Custom_Authorizer.zip
+      Description: "GetImageAuthorizer"
+      FunctionName: !Ref GetImageAuthorizerLambdaFunctionName
+      Handler: Custom_Authorizer.handler
+      MemorySize: 128
+      Role: !GetAtt "LambdaServiceRole.Arn"
+      Runtime: nodejs12.x
+      Timeout: 10
+  GetImageAuthorizerLambdaFunctionLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetImageAuthorizerLambdaFunctionName}"
+      RetentionInDays: 90
+  # Lambda Resource Policy
+  GetImageAuthorizerLambdaFunctionPermissions:
+    Type: AWS::Lambda::Permission
+    DependsOn: 
+    - FetchImageAPIAuthorizer
+    - GetImageAuthorizerLambdaFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetImageAuthorizerLambdaFunction
+      Principal: apigateway.amazonaws.com
+      # arn:aws:execute-api:ap-southeast-2:924507535898:pi3248145c/authorizers/mmgyn6
+      SourceArn:
+        Fn::Join:
+        - ""
+        - - 'arn:aws:execute-api:'
+          - !Ref AWS::Region
+          - ':'
+          - !Ref AWS::AccountId
+          - ':'
+          - !Ref FetchImageAPI
+          - '/authorizers/'      
+          - !Ref FetchImageAPIAuthorizer
+  GetImageLambdaFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: cloudfront-workshop-field-level-encryption-ex
+        S3Key: Store_Data.zip
+      Description: "GetImage"
+      FunctionName: !Ref GetImageLambdaFunctionName
+      Handler: Store_Data.store_data
+      MemorySize: 128
+      Role: !GetAtt "LambdaServiceRole.Arn"
+      Runtime: python3.8
+      Timeout: 10
+  GetImageLambdaFunctionLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetImageLambdaFunctionName}"
+      RetentionInDays: 90
+  # Lambda Resource Policy
+  GetImageLambdaFunctionPermissions:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+    - GetImageLambdaFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetImageLambdaFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ""
+        - - 'arn:aws:execute-api:'
+          - !Ref AWS::Region
+          - ':'
+          - !Ref AWS::AccountId
+          - ':'
+          - !Ref FetchImageAPI
+          - '/*/POST/images'            
+  FetchImageAPI:  
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Name: "cloudfrontlabapi"
+      Description: "API that fetches images from S3"
+      EndpointConfiguration:
+        Types:
+        - REGIONAL
+  ImageResource:  
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref FetchImageAPI
+      ParentId: !GetAtt "FetchImageAPI.RootResourceId"
+      PathPart: images
+  ImageResourceHTTPMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      AuthorizationType: "CUSTOM"
+      AuthorizerId: !Ref FetchImageAPIAuthorizer
+      HttpMethod: "POST"
+      Integration:
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${getImageLambdaFunctionArn}/invocations"
+          - getImageLambdaFunctionArn: !GetAtt "GetImageLambdaFunction.Arn"
+      ResourceId: !Ref "ImageResource"
+      RestApiId: !Ref "FetchImageAPI"
+  FetchImageAPIAuthorizer:
+    Type: 'AWS::ApiGateway::Authorizer'
+    Properties:
+      AuthorizerUri: !Sub
+      - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${getImageAuthorizerLambdaFunctionArn}/invocations"
+      - getImageAuthorizerLambdaFunctionArn: !GetAtt "GetImageAuthorizerLambdaFunction.Arn" 
+      Type: REQUEST
+      IdentitySource: method.request.header.cf_secret_custom_header
+      Name: GetImageAuthorier
+      RestApiId: !Ref "FetchImageAPI"
+  FetchImageAPIDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    DependsOn:
+      - ImageResourceHTTPMethod
+    Properties:
+      RestApiId: !Ref FetchImageAPI
+      StageName: !Ref APIStageName
+  #CloudFrontOriginAccessIdentity:  
+  #  Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+  #  Properties:
+  #    CloudFrontOriginAccessIdentityConfig:
+  #      Comment: "new OAI"
+  CloudFront:  
+    Type: AWS::CloudFront::Distribution
+    DependsOn: FetchImageAPI
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+          MinimumProtocolVersion: TLSv1.2_2018
+        Origins:
+        #- Id: S3Origin
+        #  DomainName: !Sub
+        #  - ${mybucket}.s3.amazonaws.com
+        #  - { mybucket: !Ref ImageBucket}
+        #  S3OriginConfig:
+        #    OriginAccessIdentity: 
+        #      Fn::Join:
+        #        - ""
+        #        - - 'origin-access-identity/cloudfront/'
+        #          - !Ref CloudFrontOriginAccessIdentity
+        - Id: APIGOrigin
+          DomainName: !Sub
+            - ${apigId}.execute-api.${AWS::Region}.amazonaws.com
+            - { apigId: !Ref FetchImageAPI }
+          OriginPath: !Sub
+            - /${Stage}
+            - { Stage: !Ref APIStageName }
+          CustomOriginConfig:
+            HTTPSPort: 443
+            OriginProtocolPolicy: https-only
+          OriginCustomHeaders:
+            - HeaderName: "cf_secret_custom_header"
+              HeaderValue: "cloudfront-workshop-secret"
+        DefaultCacheBehavior:
+          AllowedMethods: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+          CachedMethods: ["GET", "HEAD"]
+          ForwardedValues:
+            Headers:
+            - Access-Control-Request-Headers
+            - Access-Control-Request-Method
+            - Origin
+            QueryString: true
+          TargetOriginId: APIGOrigin
+          ViewerProtocolPolicy: https-only
+          Compress: true
+          DefaultTTL: 0
+        #CacheBehaviors:
+        #  - AllowedMethods:
+        #    - GET
+        #    - HEAD
+        #    TargetOriginId: S3Origin
+        #    ForwardedValues:
+        #      QueryString: 'true'
+        #      Cookies:
+        #        Forward: none
+        #    TrustedSigners: 
+        #    - !Sub ${AWS::AccountId}
+        #    ViewerProtocolPolicy: https-only
+        #    PathPattern: "*.jpeg"
+  #DistributionNameParameter:
+  #  Type: AWS::SSM::Parameter
+  #  DependsOn: CloudFront
+  #  Properties: 
+  #    Description: 'CloudFront Distribution Name'
+  #    Name: 'cf-distribution-name'
+  #    Type: String
+  #    Value: !GetAtt "CloudFront.DomainName"
+  #ImageBucketNameParameter:
+  #  Type: AWS::SSM::Parameter
+  #  DependsOn: S3BucketImages
+  #  Properties: 
+  #    Description: 'CloudFront Distribution Name'
+  #    Name: 'images-bucket'
+  #    Type: String
+  #    Value: !Ref S3BucketImages
+  #S3BucketImagesPolicy:
+  #  Type: AWS::S3::BucketPolicy
+  #  Properties: 
+  #    Bucket: !Ref S3BucketImages
+  #    PolicyDocument:
+  #      Version: "2012-10-17"
+  #      Statement:
+  #        - Effect: Allow
+  #          Principal:
+  #            CanonicalUser:
+  #              Fn::GetAtt: [ CloudFrontOriginAccessIdentity , S3CanonicalUserId ]
+  #          Action: "s3:GetObject"
+  #          Resource: !Sub "${S3BucketImages.Arn}/*"
+Outputs:
+  apiGatewayInvokeURL:
+    Value: !Sub "https://${FetchImageAPI}.execute-api.${AWS::Region}.amazonaws.com/${APIStageName}"
+  lambdaArn:
+    Value: !GetAtt "GetImageLambdaFunction.Arn"
+  distributionDomain:
+    Value: !GetAtt "CloudFront.DomainName"
