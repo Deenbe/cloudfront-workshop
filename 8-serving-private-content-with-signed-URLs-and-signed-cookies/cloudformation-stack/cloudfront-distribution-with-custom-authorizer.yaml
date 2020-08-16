@@ -5,10 +5,14 @@ Parameters:
     Type: "String"
     AllowedPattern: "^[a-z0-9]+$"
     Default: "demo"
-  lambdaFunctionName:
+  GetImageLambdaFunctionName:  
     Type: "String"
     AllowedPattern: "^[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+$"
     Default: "GetImage"
+  GetImageAuthorizerLambdaFunctionName:  
+    Type: "String"
+    AllowedPattern: "^[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+$"
+    Default: "GetImageAPIAuthorizer"  
   ImageBucket:
     Type: "String"
     Description: "Bucket That contains the images"
@@ -43,12 +47,90 @@ Resources:
                 - "logs:PutLogEvents"
               Effect: "Allow"
               Resource:
-                - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${lambdaFunctionName}:*"
+              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${GetImageLambdaFunctionName}:*"
+              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${GetImageAuthorizerLambdaFunctionName}:*"
             - Action:
               - s3:Get*
               - s3:List*
               Effect: Allow
               Resource: arn:aws:s3:::*
+  GetImageAuthorizerLambdaFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: cloudfront-workshop-presignedurl-ex
+        S3Key: Custom_Authorizer.zip
+      Description: "GetImageAuthorizer"
+      FunctionName: !Ref GetImageAuthorizerLambdaFunctionName
+      Handler: Custom_Authorizer.handler
+      MemorySize: 128
+      Role: !GetAtt "LambdaServiceRole.Arn"
+      Runtime: nodejs12.x
+      Timeout: 10
+  GetImageAuthorizerLambdaFunctionLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetImageAuthorizerLambdaFunctionName}"
+      RetentionInDays: 90
+  # Lambda Resource Policy
+  GetImageAuthorizerLambdaFunctionPermissions:
+    Type: AWS::Lambda::Permission
+    DependsOn: 
+    - FetchImageAPIAuthorizer
+    - GetImageAuthorizerLambdaFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetImageAuthorizerLambdaFunction
+      Principal: apigateway.amazonaws.com
+      # arn:aws:execute-api:ap-southeast-2:924507535898:pi3248145c/authorizers/mmgyn6
+      SourceArn:
+        Fn::Join:
+        - ""
+        - - 'arn:aws:execute-api:'
+          - !Ref AWS::Region
+          - ':'
+          - !Ref AWS::AccountId
+          - ':'
+          - !Ref FetchImageAPI
+          - '/authorizers/'      
+          - !Ref FetchImageAPIAuthorizer
+  GetImageLambdaFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: cloudfront-workshop-presignedurl-ex
+        S3Key: Get_Image.zip
+      Description: "GetImage"
+      FunctionName: !Ref GetImageLambdaFunctionName
+      Handler: Get_Image.get_image
+      MemorySize: 128
+      Role: !GetAtt "LambdaServiceRole.Arn"
+      Runtime: python3.7
+      Timeout: 10
+  GetImageLambdaFunctionLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetImageLambdaFunctionName}"
+      RetentionInDays: 90
+  # Lambda Resource Policy
+  GetImageLambdaFunctionPermissions:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+    - GetImageLambdaFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetImageLambdaFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ""
+        - - 'arn:aws:execute-api:'
+          - !Ref AWS::Region
+          - ':'
+          - !Ref AWS::AccountId
+          - ':'
+          - !Ref FetchImageAPI
+          - '/*/GET/images'            
   FetchImageAPI:  
     Type: "AWS::ApiGateway::RestApi"
     Properties:
@@ -72,64 +154,27 @@ Resources:
         IntegrationHttpMethod: "POST"
         Type: "AWS_PROXY"
         Uri: !Sub
-          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
-          - lambdaArn: !GetAtt "lambdaFunction.Arn"
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${getImageLambdaFunctionArn}/invocations"
+          - getImageLambdaFunctionArn: !GetAtt "GetImageLambdaFunction.Arn"
       ResourceId: !Ref "ImageResource"
       RestApiId: !Ref "FetchImageAPI"
   FetchImageAPIAuthorizer:
     Type: 'AWS::ApiGateway::Authorizer'
     Properties:
       AuthorizerUri: !Sub
-      - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaAuthorizerArn}/invocations"
-      - lambdaAuthorizerArn: !GetAtt "lambdaAuthorizerArn.Arn" 
+      - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${getImageAuthorizerLambdaFunctionArn}/invocations"
+      - getImageAuthorizerLambdaFunctionArn: !GetAtt "GetImageAuthorizerLambdaFunction.Arn" 
       Type: REQUEST
       IdentitySource: method.request.header.cf_secret_custom_header
-      Name: DefaultAuthorizer
+      Name: GetImageAuthorier
       RestApiId: !Ref "FetchImageAPI"
   FetchImageAPIDeployment:
     Type: "AWS::ApiGateway::Deployment"
     DependsOn:
-      - "ImageResourceHTTPMethod"
+      - ImageResourceHTTPMethod
     Properties:
-      RestApiId: !Ref "FetchImageAPI"
-      StageName: !Ref "APIStageName"
-  lambdaFunction:
-    Type: "AWS::Lambda::Function"
-    Properties:
-      Code:
-        S3Bucket: cloudfront-workshop-presignedurl-ex
-        S3Key: Get_Image.zip
-      Description: "GetImage"
-      FunctionName: !Ref "lambdaFunctionName"
-      Handler: Get_Image.get_image
-      MemorySize: 128
-      Role: !GetAtt "LambdaServiceRole.Arn"
-      Runtime: python3.7
-      Timeout: 10
-  lambdaLogGroup:
-    Type: "AWS::Logs::LogGroup"
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${lambdaFunctionName}"
-      RetentionInDays: 90
-  LambdaPermissions:
-    Type: AWS::Lambda::Permission
-    DependsOn:
-    - lambdaFunction
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref lambdaFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn:
-        Fn::Join:
-        - ""
-        - - 'arn:aws:execute-api:'
-          - !Ref AWS::Region
-          - ':'
-          - !Ref AWS::AccountId
-          - ':'
-          - !Ref FetchImageAPI
-          - '/*/GET/images'
-  #Cloudfrontoriginaccessidentity:
+      RestApiId: !Ref FetchImageAPI
+      StageName: !Ref APIStageName
   CloudFrontOriginAccessIdentity:  
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
@@ -141,7 +186,6 @@ Resources:
     Properties:
       DistributionConfig:
         Enabled: true
-        #IPV6Enabled: false
         HttpVersion: http2
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
@@ -168,7 +212,7 @@ Resources:
             HTTPSPort: 443
             OriginProtocolPolicy: https-only
           OriginCustomHeaders:
-            - HeaderName: 'cf_secret_custom_header'
+            - HeaderName: "cf_secret_custom_header"
               HeaderValue: "cloudfront-workshop-secret"
         DefaultCacheBehavior:
           AllowedMethods: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
@@ -229,6 +273,6 @@ Outputs:
   apiGatewayInvokeURL:
     Value: !Sub "https://${FetchImageAPI}.execute-api.${AWS::Region}.amazonaws.com/${APIStageName}"
   lambdaArn:
-    Value: !GetAtt "lambdaFunction.Arn"
+    Value: !GetAtt "GetImageLambdaFunction.Arn"
   distributionDomain:
     Value: !GetAtt "CloudFront.DomainName"

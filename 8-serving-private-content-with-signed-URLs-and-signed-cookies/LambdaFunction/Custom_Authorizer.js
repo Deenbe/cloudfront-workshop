@@ -22,7 +22,7 @@ exports.handler = function(event, context, callback) {
   var condition = {};
   condition.IpAddress = {};
   
-  if (headers["Verify-From-Cf"] === "cloudfront-workshop-secret") {
+  if (headers["cf_secret_custom_header"] === "cloudfront-workshop-secret") {
       callback(null, generateAllow('me', event.methodArn));
   }  else {
       callback("Unauthorized");
