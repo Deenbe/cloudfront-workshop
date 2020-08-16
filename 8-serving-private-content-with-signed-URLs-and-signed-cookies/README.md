@@ -107,7 +107,11 @@ $ ./deploy-custom-authorizer.sh deploy
 ```
 
 - Now try access APIOrigin api directly
-- You won't be able to access the underlying directly.
+- You won't be able to access the underlying directly. You will get a message **Unauthorized**
+
+
+![](./images/cloudfront-presigned-url-unauthorized.png)
+
 
 #### This is cool, isn't it...:-)
 
