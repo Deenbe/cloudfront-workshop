@@ -9,8 +9,10 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from botocore.signers import CloudFrontSigner
 
+def 
 def get_secret():
-    secret_name = "xxxxxxxxxxxxxxxxxx"
+    # make sure you have a CloudFront Private Key stored in Secrets Manager with with name "cloudfrontkey"
+    secret_name = "cloudfrontkey"
     region_name = "ap-southeast-2"
 
     # Create a Secrets Manager client
@@ -26,16 +28,7 @@ def get_secret():
         )
         return str(get_secret_value_response["SecretString"])
     except ClientError as e:
-        if e.response['Error']['Code'] == 'DecryptionFailureException':
-            raise e
-        elif e.response['Error']['Code'] == 'InternalServiceErrorException':
-            raise e
-        elif e.response['Error']['Code'] == 'InvalidParameterException':
-            raise e
-        elif e.response['Error']['Code'] == 'InvalidRequestException':
-            raise e
-        elif e.response['Error']['Code'] == 'ResourceNotFoundException':
-            raise e
+        raise e
     else:
         if 'SecretString' in get_secret_value_response:
             secret = get_secret_value_response['SecretString']
@@ -66,6 +59,13 @@ def getImagesBucketName():
     )
     return images_bucket['Parameter']['Value']
     
+getCloudFrontAccessKeyId():
+    client = boto3.client('ssm')
+    cloudfrontAccessKeyId = client.get_parameter(
+        Name='CloudFrontAccessKeyID',
+        WithDecryption=False
+    )
+    return cloudfrontAccessKeyId['Parameter']['Value']
 
 def get_image(event, context):
     event_string = json.dumps(event)
@@ -84,11 +84,12 @@ def get_image(event, context):
     print("Bucket name is {0}".format(bucket_name))
     
     try:
-        key_id = 'xxxxxxxxxxxxxxxxxxx'
+
+        #key_id = 'xxxxxxxxxxxxxxxxxxx'
+        key_id = getCloudFrontAccessKeyId()
+        print("Cloudfront Access Key Id is {0}".format(key_id))
         cf_distribution_name = getCloudFrontDistributionName()
         print("Cloudfront distribution name is {0}".format(cf_distribution_name))
-        print("**************************************")
-        print(cf_distribution_name)
         url = "https://" + cf_distribution_name + "/" + image_name
         expire_date = datetime.datetime(2020, 10, 10)
         cloudfront_signer = CloudFrontSigner(key_id, rsa_signer)
@@ -96,9 +97,7 @@ def get_image(event, context):
         # Create a signed url that will be valid until the specfic expiry date
         # provided using a canned policy.
         signed_url = cloudfront_signer.generate_presigned_url(url, date_less_than=expire_date)
-        print("****************Pre-signed URL is ****************")
         print(signed_url)
-        print("****************Pre-signed URL end ****************")
         print("looking for image name is {0} from bucket {1}".format(image_name,bucket_name))
         s3 = boto3.resource('s3')
         object = s3.Object(bucket_name,image_name).load()
