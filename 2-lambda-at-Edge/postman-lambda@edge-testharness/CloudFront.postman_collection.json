@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7a679b34-9bbd-4c6d-8027-d78a4d260ca4",
+		"_postman_id": "4876a88c-91ab-4aea-b384-b4247a0250a2",
 		"name": "CloudFront",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -131,6 +131,36 @@
 					],
 					"path": [
 						"cloudfront.jpg"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Access Premium Property Images",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://dnc8pv5xj9x19.cloudfront.net/images?image_name=property-1.jpeg&user_name=king-kong",
+					"protocol": "https",
+					"host": [
+						"dnc8pv5xj9x19",
+						"cloudfront",
+						"net"
+					],
+					"path": [
+						"images"
+					],
+					"query": [
+						{
+							"key": "image_name",
+							"value": "property-1.jpeg"
+						},
+						{
+							"key": "user_name",
+							"value": "king-kong"
+						}
 					]
 				}
 			},
