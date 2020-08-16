@@ -84,7 +84,6 @@ def get_image(event, context):
     print("Bucket name is {0}".format(bucket_name))
     
     try:
-
         #key_id = 'xxxxxxxxxxxxxxxxxxx'
         key_id = getCloudFrontAccessKeyId()
         print("Cloudfront Access Key Id is {0}".format(key_id))
