@@ -18,16 +18,17 @@ make_s3_lambda_buckets(){
     echo '*******************************************************************************'
     echo '********************** Uploading Lambda Zip files to S3 ***********************'
     echo '*******************************************************************************'
-    mkdir zipfiles
+    mkdir -p zipfiles
     cd LambdaFunctions
     for path in ./*; do
         filename=`echo ${path##*/} | tr '[:upper:]' '[:lower:]'`
         filename_without_extension=$(echo "$filename" | cut -f 1 -d '.')
-        zip ${filename_without_extension}.zip ${filename}
+        bucket_name=$(echo lambda-${filename_without_extension}-${WORKSHOP_NAME} | cut -c 1-63 | sed 's/[^[:alnum:]]*$//')
+        zip ${filename_without_extension}.zip ${path}
         cp ${filename_without_extension}.zip ../zipfiles/
         rm ${filename_without_extension}.zip
-        aws s3 mb s3://lambda-${filename_without_extension}-${WORKSHOP_NAME} --region us-east-1
-        aws s3 cp ../zipfiles/${filename_without_extension}.zip s3://lambda-${filename_without_extension}-${WORKSHOP_NAME}/${filename_without_extension}.zip --region us-east-1
+        aws s3 mb s3://${bucket_name} --region us-east-1
+        aws s3 cp ../zipfiles/${filename_without_extension}.zip s3://${bucket_name}/${filename_without_extension}.zip --region us-east-1
     done
     echo '******************** Lambda Zip files uploaded to S3 Completed ***************'
 }
@@ -39,6 +40,7 @@ deploy_stack() {
         
         filename=`echo ${path##*/} | tr '[:upper:]' '[:lower:]'`
         filename_without_extension=$(echo "$filename" | cut -f 1 -d '.')
+        bucket_name=$(echo lambda-${filename_without_extension}-${WORKSHOP_NAME} | cut -c 1-63 | sed 's/[^[:alnum:]]*$//')
         ext="${filename##*.}"
         
         lambda_runtime="python3.8"
@@ -52,11 +54,11 @@ deploy_stack() {
         
         aws cloudformation deploy \
         --no-fail-on-empty-changeset \
-        --stack-name "lambda-${filename_without_extension}-${WORKSHOP_NAME}" \
+        --stack-name "${bucket_name}" \
         --template-file "${DIR}/cloudformation-stack/deploy-lambdas.yaml" \
         --capabilities CAPABILITY_IAM \
         --region us-east-1 \
-        --parameter-overrides "LambdaRuntime=${lambda_runtime}" "Handler=${lambda_handler}" "BucketName=lambda-${filename_without_extension}-${WORKSHOP_NAME}" "FunctionName=${filename_without_extension}" "ZipfileName=${filename_without_extension}.zip"
+        --parameter-overrides "LambdaRuntime=${lambda_runtime}" "Handler=${lambda_handler}" "BucketName=${bucket_name}" "FunctionName=${filename_without_extension}-${WORKSHOP_NAME}" "ZipfileName=${filename_without_extension}.zip"
 
     done
 }
@@ -65,8 +67,9 @@ delete_stack() {
     for path in zipfiles/*; do
         filename=`echo ${path##*/} | tr '[:upper:]' '[:lower:]'`
         filename_without_extension=$(echo "$filename" | cut -f 1 -d '.')
+        bucket_name=$(echo lambda-${filename_without_extension}-${WORKSHOP_NAME} | cut -c 1-63 | sed 's/[^[:alnum:]]*$//')
 
-        aws cloudformation delete-stack --stack-name "lambda-${filename_without_extension}-${WORKSHOP_NAME}" --region us-east-1
+        aws cloudformation delete-stack --stack-name "${bucket_name}" --region us-east-1
         echo 'Waiting for the stack to be deleted, this may take a few minutes...'
         echo 'Done'
     done
@@ -79,8 +82,9 @@ delete_s3_buckets() {
     for path in ./*; do
         filename=`echo ${path##*/} | tr '[:upper:]' '[:lower:]'`
         filename_without_extension=$(echo "$filename" | cut -f 1 -d '.')
-        aws s3 rm s3://lambda-${filename_without_extension}-${WORKSHOP_NAME}/${filename_without_extension}.zip --region us-east-1
-        aws s3 rb s3://lambda-${filename_without_extension}-${WORKSHOP_NAME} --region us-east-1
+        bucket_name=$(echo lambda-${filename_without_extension}-${WORKSHOP_NAME} | cut -c 1-63 | sed 's/[^[:alnum:]]*$//')
+        aws s3 rm s3://${bucket_name}/${filename_without_extension}.zip --region us-east-1
+        aws s3 rb s3://${bucket_name} --region us-east-1
     done
     cd ..
     rm -rf zipfiles
