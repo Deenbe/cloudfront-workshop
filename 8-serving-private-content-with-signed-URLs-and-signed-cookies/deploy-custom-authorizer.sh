@@ -64,7 +64,7 @@ deploy_stack() {
     --stack-name "cloudfront-presigned-content-with-authorizer-lab-stack" \
     --template-file "${DIR}/cloudformation-stack/cloudfront-distribution-with-custom-authorizer.yaml" \
     --capabilities CAPABILITY_IAM \
-    --parameter-overrides "ImageBucket=${IMAGES_BUCKET_NAME}"
+    --parameter-overrides "ImageBucket=${IMAGES_BUCKET_NAME}" "LambdaFunctionBucketName=${LAMBDA_FUNCTION_BUCKET_NAME}"
 }
 delete_stack() {
     echo "Deleting Cloud Formation stack"

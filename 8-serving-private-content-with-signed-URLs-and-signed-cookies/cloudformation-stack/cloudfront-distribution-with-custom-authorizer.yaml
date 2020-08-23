@@ -16,6 +16,9 @@ Parameters:
   ImageBucket:
     Type: "String"
     Description: "Bucket That contains the images"
+  LambdaFunctionBucketName:
+    Type: String
+    Description: Lambda function bucket name
 Resources:
   S3BucketImages:
     Type: AWS::S3::Bucket
@@ -98,7 +101,7 @@ Resources:
     Type: "AWS::Lambda::Function"
     Properties:
       Code:
-        S3Bucket: cloudfront-workshop-presignedurl-ex
+        S3Bucket: !Ref LambdaFunctionBucketName
         S3Key: Get_Image.zip
       Description: "GetImage"
       FunctionName: !Ref GetImageLambdaFunctionName
