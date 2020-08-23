@@ -61,7 +61,7 @@ Resources:
     Type: "AWS::Lambda::Function"
     Properties:
       Code:
-        S3Bucket: cloudfront-workshop-presignedurl-ex
+        S3Bucket: !Ref LambdaFunctionBucketName
         S3Key: Custom_Authorizer.zip
       Description: "GetImageAuthorizer"
       FunctionName: !Ref GetImageAuthorizerLambdaFunctionName
