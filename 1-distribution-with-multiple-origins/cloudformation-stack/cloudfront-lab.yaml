@@ -32,19 +32,47 @@ Resources:
     S3BucketImages:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: !Sub "images-${WorkshopName}"
+        #BucketName: !Sub "images-${WorkshopName}"
+        BucketName:
+          Fn::Join:
+          - ""
+          - - 'images-'
+            - !Sub ${WorkshopName}
+            - '-'
+            - !Ref AWS::AccountId
     S3BucketHtml:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: !Sub "html-${WorkshopName}"
+        #BucketName: !Sub "html-${WorkshopName}"
+        BucketName:
+          Fn::Join:
+          - ""
+          - - 'html-'
+            - !Sub ${WorkshopName}
+            - '-'
+            - !Ref AWS::AccountId
     S3BucketHtmlSecondary:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: !Sub "html-secondary-${WorkshopName}"
+        #BucketName: !Sub "html-secondary-${WorkshopName}"
+        BucketName:
+          Fn::Join:
+          - ""
+          - - 'html-secondary-'
+            - !Sub ${WorkshopName}
+            - '-'
+            - !Ref AWS::AccountId
     S3BucketCSS:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: !Sub "css-${WorkshopName}"
+        #BucketName: !Sub "css-${WorkshopName}"
+        BucketName:
+          Fn::Join:
+          - ""
+          - - 'css-'
+            - !Sub ${WorkshopName}
+            - '-'
+            - !Ref AWS::AccountId
 
 Outputs:
   S3BucketImages:
